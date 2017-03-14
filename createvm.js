@@ -10,7 +10,6 @@ var ResourceManagementClient = require('azure-arm-resource').ResourceManagementC
 var SubscriptionManagementClient = require('azure-arm-resource').SubscriptionClient;
 
 
-
 var AZURE_USER = 'devuser@davidbensonbeboptechnology.onmicrosoft.com';
 var AZURE_PASS = 'Batman1qaz';
 var SUBSCRIPTION_ID = 'abb8a257-30cb-4b25-9cb5-de7bbc0f39dc';
@@ -19,18 +18,20 @@ var gComputeClient, gResourceClient, gStorageClient, gNetworkClient;
 
 //Sample Config
 var randomIds = [];
-var location = 'eastus';
+
 //var gResourceGroupName = _generateRandomId('api-test-rg-', randomIds);
 
 
 var gVmName = _generateRandomId('api-vm-', randomIds);
 //START ----------------------- GET FROM L2 TEAM -----------------------
+var location = 'southcentralus';
 var gResourceGroupName = 'RG-testvm';
 
 var gStorageAccountName = 'rgtestvmdisks927';
 //var storageAccountName = _generateRandomId('api-test-storage-', randomIds);
 
-var gVmImageName = 'https://rgtestvmdisks927.blob.core.windows.net/system/Microsoft.Compute/Images/testtemplate/template-osDisk.5d248dc0-a027-4cb1-9021-bb7f09096755.vhd';
+var gVmImageURI = 'https://rgtestvmdisks927.blob.core.windows.net/system/Microsoft.Compute/Images/testtemplate/template-osDisk.5d248dc0-a027-4cb1-9021-bb7f09096755.vhd';
+var gVmSize = 'Standard_NV6';
 
 //var vnetName = _generateRandomId('testvnet', randomIds);
 var gVnetName = 'VNet-SouthCentralUS-Dev';
@@ -44,7 +45,6 @@ var gAdminUsername = 'bebopadmin';
 var gAdminPassword = 'eV86HdXtCFT5';
 //END ----------------------- GET FROM L2 TEAM -----------------------
 
-
 var gPublicIPName = _generateRandomId('api-testpip', randomIds);
 var gNetworkInterfaceName = _generateRandomId('api-testnic', randomIds);
 var gIpConfigName = _generateRandomId('api-testcrpip', randomIds);
@@ -57,9 +57,7 @@ var gStorageImageReference = {
     sku: '2012-r2-datacenter',
     osType: 'Windows',
     version: 'latest'
-
 };
-
 
 //Step 1
 function createResourceGroup(callback) {
@@ -120,7 +118,6 @@ function getSubnetInfo(callback) {
 }
 
 function createNIC(subnetInfo, publicIPInfo, callback) {
-    console.log(subnetInfo);
     var nicParameters = {
         location: location,
         ipConfigurations: [{
@@ -131,7 +128,7 @@ function createNIC(subnetInfo, publicIPInfo, callback) {
         }]
     };
     console.log('\nCreating Network Interface: ' + gNetworkInterfaceName);
-    return gNetworkClient.networkInterfaces.createOrUpdate(gVnetResourceGroupName, gNetworkInterfaceName, nicParameters, callback);
+    return gNetworkClient.networkInterfaces.createOrUpdate(gResourceGroupName, gNetworkInterfaceName, nicParameters, callback);
 }
 
 function findVMImage(callback) {
@@ -145,6 +142,7 @@ function findVMImage(callback) {
 
 function createVirtualMachine(nicId, callback) {
 
+    var NEW_VM_VHD_NAME = 'https://' + gStorageAccountName + '.blob.core.windows.net/vhds/customvm-api-' + randomIds + '.vhd';
     var vmParameters = {
         location: location,
         osProfile: {
@@ -153,7 +151,7 @@ function createVirtualMachine(nicId, callback) {
             adminPassword: gAdminPassword
         },
         hardwareProfile: {
-            vmSize: 'Standard_A1'
+            vmSize: gVmSize
         },
         storageProfile: {
 
@@ -163,10 +161,10 @@ function createVirtualMachine(nicId, callback) {
                 createOption: 'FromImage',
                 osType: 'Windows',
                 vhd: {
-                    uri: 'https://' + gStorageAccountName + '.blob.core.windows.net/vhds/customvm1djlgjqeg4mkx4osDisktest1.vhd'
+                    uri: NEW_VM_VHD_NAME
                 },
                 image: {
-                    uri: 'https://imagetestvmdisks240.blob.core.windows.net/system/Microsoft.Compute/Images/customimage/azcustomimage-osDisk.057fdab2-2ef3-4efe-82da-990e4596c2b2.vhd'
+                    uri: gVmImageURI
                 }
             },
         },
