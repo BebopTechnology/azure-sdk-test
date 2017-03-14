@@ -120,6 +120,7 @@ function getSubnetInfo(callback) {
 }
 
 function createNIC(subnetInfo, publicIPInfo, callback) {
+    console.log(subnetInfo);
     var nicParameters = {
         location: location,
         ipConfigurations: [{
