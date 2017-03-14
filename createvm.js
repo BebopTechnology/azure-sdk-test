@@ -22,11 +22,11 @@ var randomIds = [];
 var location = 'eastus';
 //var gResourceGroupName = _generateRandomId('api-test-rg-', randomIds);
 
-var gResourceGroupName = 'RG-SouthCentralUS-Dev';
+
 var gVmName = _generateRandomId('api-vm-', randomIds);
-
-
 //START ----------------------- GET FROM L2 TEAM -----------------------
+var gResourceGroupName = 'RG-testvm';
+
 var gStorageAccountName = 'rgtestvmdisks927';
 //var storageAccountName = _generateRandomId('api-test-storage-', randomIds);
 
