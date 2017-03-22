@@ -142,7 +142,7 @@ function findVMImage(callback) {
 
 function createVirtualMachine(nicId, callback) {
 
-    var NEW_VM_VHD_NAME = 'https://' + gStorageAccountName + '.blob.core.windows.net/vhds/customvm-api-' + randomIds + '.vhd';
+    var NEW_VM_VHD_NAME = 'https://' + gStorageAccountName + '.blob.core.windows.net/vhds/' + _generateRandomId('customvm-api-', randomIds) + '.vhd';
     var vmParameters = {
         location: location,
         osProfile: {
