@@ -1,23 +1,22 @@
 {
-    "name": "azure-test",
-    "version": "1.0.0",
-    "description": "",
-    "main": "app.js",
-    "scripts": {},
-    "repository": {
-        "type": "git",
-        "url": ""
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-        "async": "^0.9.0",
-        "azure": "latest",
-        "ms-rest-azure": "^1.9.0",
-        "azure-arm-compute": "latest",
-        "azure-arm-network": "^0.12.1",
-        "azure-arm-resource": "^1.0.0-preview",
-        "azure-arm-storage": "^0.12.2-preview"
-
-    }
+  "name": "azure-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^0.9.0",
+    "azure": "latest",
+    "azure-arm-compute": "latest",
+    "azure-arm-network": "latest",
+    "azure-arm-resource": "latest",
+    "azure-arm-storage": "latest",
+    "ms-rest-azure": "latest"
+  }
 }

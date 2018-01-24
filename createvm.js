@@ -11,35 +11,31 @@ var SubscriptionManagementClient = require('azure-arm-resource').SubscriptionCli
 
 
 var AZURE_USER = 'devuser@davidbensonbeboptechnology.onmicrosoft.com';
-var AZURE_PASS = 'Batman1qaz';
-var SUBSCRIPTION_ID = 'abb8a257-30cb-4b25-9cb5-de7bbc0f39dc';
+var AZURE_PASS = 'ViperPit!2';
+var SUBSCRIPTION_ID = '6e65fb7d-2d61-45f3-9d96-550175b20de0';
 
 var gComputeClient, gResourceClient, gStorageClient, gNetworkClient;
-
 //Sample Config
 var randomIds = [];
-
 //var gResourceGroupName = _generateRandomId('api-test-rg-', randomIds);
-
-
 var gVmName = _generateRandomId('api-vm-', randomIds);
 //START ----------------------- GET FROM L2 TEAM -----------------------
 var location = 'southcentralus';
-var gResourceGroupName = 'RG-testvm';
 
-var gStorageAccountName = 'rgtestvmdisks927';
+var gResourceGroupName = 'rg-bebopdevextstorage';
+var gStorageAccountName = 'bebopdevextstorage';
 //var storageAccountName = _generateRandomId('api-test-storage-', randomIds);
+var gVmImageURI = 'https://bebopdevextstorage.blob.core.windows.net/system/Microsoft.Compute/Images/bebop-osDisk.d44d1457-b525-4549-9473-53d2a7ffa2b3.vhd';
 
-var gVmImageURI = 'https://rgtestvmdisks927.blob.core.windows.net/system/Microsoft.Compute/Images/testtemplate/template-osDisk.5d248dc0-a027-4cb1-9021-bb7f09096755.vhd';
 var gVmSize = 'Standard_NV6';
 
 //var vnetName = _generateRandomId('testvnet', randomIds);
-var gVnetName = 'VNet-SouthCentralUS-Dev';
-var gVnetResourceGroupName = 'RG-SouthCentralUS-Dev';
+var gVnetName = 'VN-SouthCentralUS-Prod';
+var gVnetResourceGroupName = 'VN-SouthCentralUS-Prod';
 
 //var subnetName = _generateRandomId('testsubnet', randomIds);
-var gSubnetName = 'SouthCentralUS-Subnet1';
-var gSubnetResourceGroupName = 'RG-SouthCentralUS-Dev';
+var gSubnetName = 'SouthCentralUS-Prod-SubNet1';
+var gSubnetResourceGroupName = 'VN-SouthCentralUS-Prod';
 
 var gAdminUsername = 'bebopadmin';
 var gAdminPassword = 'eV86HdXtCFT5';
@@ -60,15 +56,15 @@ var gStorageImageReference = {
 };
 
 //Step 1
-function createResourceGroup(callback) {
+function createResourceGroup(resourceGroupName, callback) {
     var groupParameters = {
         location: location,
         tags: {
-            sampletag: 'apiSampleValue'
+            sampletag: 'simran_Jan2018'
         }
     };
-    console.log('Creating resource group: ' + gResourceGroupName);
-    return gResourceClient.resourceGroups.createOrUpdate(gResourceGroupName, groupParameters, callback);
+    console.log('Creating resource group: ' + resourceGroupName);
+    return gResourceClient.resourceGroups.createOrUpdate(resourceGroupName, groupParameters, callback);
 }
 //Step 2
 function createStorageAccount(callback) {
@@ -112,9 +108,8 @@ function _generateRandomId(prefix, currentList) {
 
 
 function getSubnetInfo(callback) {
-
     console.log('\nGetting subnet info for: ' + gSubnetName);
-    return gNetworkClient.subnets.get(gSubnetResourceGroupName, gVnetName, gSubnetName, callback);
+    return gNetworkClient.subnets.get(gSubnetName, gVnetName, gSubnetName, callback);
 }
 
 function createNIC(subnetInfo, publicIPInfo, callback) {
@@ -139,14 +134,22 @@ function findVMImage(callback) {
     }, callback);
 }
 
+// https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/virtualmachines-create-or-update
+function createVirtualMachine(newlyCreatedResourceGroup, nicId, callback) {
 
-function createVirtualMachine(nicId, callback) {
+    //TODO, get from AMI Profile
+    var resourceGroupForImage = 'BEBOP-AMI';
+    var amiId = 'Bebop-AMI-AvidAdobe-20180117';
 
-    var NEW_VM_VHD_NAME = 'https://' + gStorageAccountName + '.blob.core.windows.net/vhds/' + _generateRandomId('customvm-api-', randomIds) + '.vhd';
+    //TODO GET FROM POD PROFILE
+    var newWorkstationName = _generateRandomId('simran-jan2018-vm-', randomIds);
+
+    //SUBSCRIPTION_ID from region profile
+
     var vmParameters = {
         location: location,
         osProfile: {
-            computerName: gVmName,
+            computerName: newWorkstationName,
             adminUsername: gAdminUsername,
             adminPassword: gAdminPassword
         },
@@ -155,17 +158,14 @@ function createVirtualMachine(nicId, callback) {
         },
         storageProfile: {
 
+            imageReference: {
+                id: `/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${resourceGroupForImage}/providers/Microsoft.Compute/images/${amiId}`
+            },
             osDisk: {
                 name: gOsDiskName,
                 caching: 'None',
                 createOption: 'FromImage',
-                osType: 'Windows',
-                vhd: {
-                    uri: NEW_VM_VHD_NAME
-                },
-                image: {
-                    uri: gVmImageURI
-                }
+                osType: 'Windows'
             },
         },
         networkProfile: {
@@ -176,7 +176,7 @@ function createVirtualMachine(nicId, callback) {
         }
     };
     console.log('Creating Virtual Machine: ' + gVmName);
-    gComputeClient.virtualMachines.createOrUpdate(gResourceGroupName, gVmName, vmParameters, callback);
+    gComputeClient.virtualMachines.beginCreateOrUpdate(newlyCreatedResourceGroup, newWorkstationName, vmParameters, callback);
 }
 
 
@@ -215,22 +215,37 @@ function launchVMSimple2() {
 
 }
 
-function launchVMSimple() {
-    createResourceGroup(function(err, result) {
+
+function launchVMSimpleOrg() {
+    var aResourceGroupName = _generateRandomId('rgWorkstation-', randomIds);
+    createResourceGroup(aResourceGroupName, function(err, rgObj) {
         if (err) {
             console.log(err);
             return false;
         }
+
+        /*
+        { id: '/subscriptions/6e65fb7d-2d61-45f3-9d96-550175b20de0/resourceGroups/rgWorkstation-3572',
+  name: 'rgWorkstation-3572',
+  properties: { provisioningState: 'Succeeded' },
+  location: 'southcentralus',
+  tags: { sampletag: 'simran_Jan2018' } }
+  */
+
+        console.log(rgObj);
+        /*
         getSubnetInfo(function(err, subnetInfo) {
             if (err) {
                 console.log(err);
                 return false;
             }
+
             createNIC(subnetInfo, null, function(err, nicInfo) {
                 if (err) {
                     console.log(err);
                     return false;
                 }
+
 
                 createVirtualMachine(nicInfo.id, function(err, vmInfo) {
                     if (err) {
@@ -243,7 +258,49 @@ function launchVMSimple() {
                     }));
 
                 });
+
             });
+
+        });
+          */
+    });
+
+}
+
+function launchVMSimple() {
+    var aResourceGroupName = _generateRandomId('rgWorkstation-', randomIds);
+    createResourceGroup(aResourceGroupName, function(err, rgObj) {
+        if (err) {
+            console.log(err);
+            return false;
+        }
+        getSubnetInfo(function(err, subnetInfo) {
+            if (err) {
+                console.log(err);
+                return false;
+            }
+
+            createNIC(subnetInfo, null, function(err, nicInfo) {
+                if (err) {
+                    console.log(err);
+                    return false;
+                }
+
+
+                createVirtualMachine(aResourceGroupName, nicInfo.id, function(err, vmInfo) {
+                    if (err) {
+                        console.log(err);
+                        return false;
+                    }
+
+                    console.log('Created VM: ', util.inspect(vmInfo, {
+                        depth: null
+                    }));
+
+                });
+
+            });
+
         });
     });
 
@@ -300,15 +357,13 @@ function launchVM() {
 */
 msRestAzure.loginWithUsernamePassword(AZURE_USER, AZURE_PASS, function(err, credentials) {
     if (err) throw err;
-
     console.log('Auth Success!');
-
     gComputeClient = new computeManagementClient(credentials, SUBSCRIPTION_ID);
     gResourceClient = new ResourceManagementClient(credentials, SUBSCRIPTION_ID);
     gStorageClient = new StorageManagementClient(credentials, SUBSCRIPTION_ID);
     gNetworkClient = new NetworkManagementClient(credentials, SUBSCRIPTION_ID);
 
-    launchVMSimple2();
+    launchVMSimple();
     //findVMImage();
 
 });
