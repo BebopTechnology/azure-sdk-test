@@ -108,8 +108,8 @@ function _generateRandomId(prefix, currentList) {
 
 
 function getSubnetInfo(callback) {
-    console.log('\nGetting subnet info for: ' + gSubnetName);
-    return gNetworkClient.subnets.get(gSubnetName, gVnetName, gSubnetName, callback);
+    console.log('\nGetting subnet info for: ', gSubnetResourceGroupName, gSubnetName);
+    return gNetworkClient.subnets.get(gSubnetResourceGroupName, gVnetName, gSubnetName, callback);
 }
 
 function createNIC(subnetInfo, publicIPInfo, callback) {
@@ -142,7 +142,7 @@ function createVirtualMachine(newlyCreatedResourceGroup, nicId, callback) {
     var amiId = 'Bebop-AMI-AvidAdobe-20180117';
 
     //TODO GET FROM POD PROFILE
-    var newWorkstationName = _generateRandomId('simran-jan2018-vm-', randomIds);
+    var newWorkstationName = _generateRandomId('simjan18vm-', randomIds);
 
     //SUBSCRIPTION_ID from region profile
 
